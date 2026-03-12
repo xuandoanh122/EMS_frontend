@@ -34,12 +34,13 @@ export function ClassroomForm({ defaultValues, onSubmit, isLoading, mode = 'crea
     defaultValues: {
       class_code: defaultValues?.class_code ?? '',
       class_name: defaultValues?.class_name ?? '',
+      class_type: defaultValues?.class_type ?? 'standard',
       academic_year: defaultValues?.academic_year ?? '',
-      grade_level: defaultValues?.grade_level ?? '',
-      max_students: defaultValues?.max_students ?? 40,
-      homeroom_teacher_code: defaultValues?.homeroom_teacher_code ?? '',
+      grade_level: defaultValues?.grade_level ?? ('' as unknown as number),
+      max_capacity: defaultValues?.max_capacity ?? 40,
+      homeroom_teacher_id: defaultValues?.homeroom_teacher_id ?? ('' as unknown as number),
+      room_number: defaultValues?.room_number ?? '',
       description: defaultValues?.description ?? '',
-      status: defaultValues?.status ?? 'active',
     },
   })
 
@@ -57,7 +58,7 @@ export function ClassroomForm({ defaultValues, onSubmit, isLoading, mode = 'crea
                 <FormItem>
                   <FormLabel>Mã lớp <span className="text-destructive">*</span></FormLabel>
                   <FormControl>
-                    <Input placeholder="VD: 10A1" {...field} disabled={mode === 'edit'} />
+                    <Input placeholder="VD: 10A1-2024" {...field} disabled={mode === 'edit'} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -81,7 +82,7 @@ export function ClassroomForm({ defaultValues, onSubmit, isLoading, mode = 'crea
               name="academic_year"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Năm học</FormLabel>
+                  <FormLabel>Năm học <span className="text-destructive">*</span></FormLabel>
                   <FormControl>
                     <Input placeholder="VD: 2024-2025" {...field} />
                   </FormControl>
@@ -94,9 +95,9 @@ export function ClassroomForm({ defaultValues, onSubmit, isLoading, mode = 'crea
               name="grade_level"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Khối lớp</FormLabel>
+                  <FormLabel>Khối lớp <span className="text-destructive">*</span></FormLabel>
                   <FormControl>
-                    <Input placeholder="VD: 10, 11, 12" {...field} />
+                    <Input type="number" min={1} max={13} placeholder="VD: 10" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -104,12 +105,34 @@ export function ClassroomForm({ defaultValues, onSubmit, isLoading, mode = 'crea
             />
             <FormField
               control={form.control}
-              name="max_students"
+              name="class_type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Loại lớp</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Chọn loại lớp" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="standard">Lớp thường</SelectItem>
+                      <SelectItem value="specialized">Lớp chuyên</SelectItem>
+                      <SelectItem value="advanced">Lớp nâng cao</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="max_capacity"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Sĩ số tối đa</FormLabel>
                   <FormControl>
-                    <Input type="number" min={1} max={100} {...field} />
+                    <Input type="number" min={1} max={200} placeholder="40" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -117,12 +140,25 @@ export function ClassroomForm({ defaultValues, onSubmit, isLoading, mode = 'crea
             />
             <FormField
               control={form.control}
-              name="homeroom_teacher_code"
+              name="homeroom_teacher_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Mã GVCN</FormLabel>
+                  <FormLabel>ID Giáo viên chủ nhiệm</FormLabel>
                   <FormControl>
-                    <Input placeholder="VD: GV2024001" {...field} />
+                    <Input type="number" min={1} placeholder="ID giáo viên" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="room_number"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phòng học</FormLabel>
+                  <FormControl>
+                    <Input placeholder="VD: P.201" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -133,46 +169,20 @@ export function ClassroomForm({ defaultValues, onSubmit, isLoading, mode = 'crea
 
         <Separator />
 
-        {/* Cài đặt */}
         <div>
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">Cài đặt</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Trạng thái</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Chọn trạng thái" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="active">Đang hoạt động</SelectItem>
-                      <SelectItem value="inactive">Không hoạt động</SelectItem>
-                      <SelectItem value="full">Đã đầy</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Ghi chú</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Mô tả thêm về lớp..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Mô tả</FormLabel>
+                <FormControl>
+                  <Input placeholder="Mô tả thêm về lớp..." {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
 
         <div className="flex justify-end gap-2 pt-2">

@@ -1,20 +1,23 @@
 import type { PaginatedResponse, QueryParams } from './api.types'
-import type { Student } from './student.types'
 
-export type ClassroomStatus = 'active' | 'inactive' | 'full'
+export type ClassType = 'standard' | 'specialized' | 'advanced'
+export type EnrollmentType = 'primary' | 'secondary'
+export type EnrollmentStatus = 'active' | 'transferred' | 'withdrawn' | 'completed'
 
 export interface Classroom {
   id: number
   class_code: string
   class_name: string
+  class_type: ClassType
   academic_year: string | null
-  grade_level: string | null
-  max_students: number
+  grade_level: number | null
+  max_capacity: number
   current_enrollment: number
+  homeroom_teacher_id: number | null
   homeroom_teacher_code: string | null
   homeroom_teacher_name: string | null
+  room_number: string | null
   description: string | null
-  status: ClassroomStatus
   is_active: boolean
   created_at: string
   updated_at: string
@@ -23,55 +26,78 @@ export interface Classroom {
 export interface ClassroomCreateRequest {
   class_code: string
   class_name: string
-  academic_year?: string
-  grade_level?: string
-  max_students?: number
-  homeroom_teacher_code?: string
+  class_type?: ClassType
+  academic_year: string
+  grade_level: number
+  max_capacity?: number
+  homeroom_teacher_id?: number
+  room_number?: string
   description?: string
-  status?: ClassroomStatus
 }
 
-export type ClassroomUpdateRequest = Partial<ClassroomCreateRequest>
+export type ClassroomUpdateRequest = Partial<Omit<ClassroomCreateRequest, 'class_code'>>
 
 export interface ClassroomStatusUpdateRequest {
-  new_status: ClassroomStatus
+  new_status: string
   reason?: string
 }
 
 export type ClassroomListResponse = PaginatedResponse<Classroom>
 
 export interface ClassroomQueryParams extends QueryParams {
-  status?: ClassroomStatus
+  class_type?: ClassType
   academic_year?: string
-  grade_level?: string
-  homeroom_teacher_code?: string
-}
-
-export interface EnrollmentCreateRequest {
-  student_code: string
-  enrollment_date?: string
-  notes?: string
+  grade_level?: number
+  homeroom_teacher_id?: number
 }
 
 export interface Enrollment {
   id: number
+  student_id: number
   student_code: string
   student_name: string
-  enrollment_date: string | null
-  status: 'active' | 'transferred' | 'dropped'
+  classroom_id: number
+  class_code: string
+  enrollment_type: EnrollmentType
+  enrollment_status: EnrollmentStatus
+  enrolled_date: string | null
+  left_date: string | null
   notes: string | null
+  created_at: string
 }
 
-export type EnrollmentListResponse = PaginatedResponse<Student>
-
-export const CLASSROOM_STATUS_LABEL: Record<ClassroomStatus, string> = {
-  active: 'Đang hoạt động',
-  inactive: 'Không hoạt động',
-  full: 'Đã đầy',
+export interface EnrollmentCreateRequest {
+  student_id: number
+  classroom_id?: number
+  enrollment_type?: EnrollmentType
+  enrolled_date?: string
+  notes?: string
 }
 
-export const VALID_CLASSROOM_STATUS_TRANSITIONS: Record<ClassroomStatus, ClassroomStatus[]> = {
-  active: ['inactive', 'full'],
-  inactive: ['active'],
-  full: ['active', 'inactive'],
+export interface EnrollmentStatusUpdateRequest {
+  new_status: EnrollmentStatus
+  left_date?: string
+  notes?: string
+}
+
+export type EnrollmentListResponse = PaginatedResponse<Enrollment>
+
+export const CLASS_TYPE_LABEL: Record<ClassType, string> = {
+  standard: 'Lớp thường',
+  specialized: 'Lớp chuyên',
+  advanced: 'Lớp nâng cao',
+}
+
+export const ENROLLMENT_STATUS_LABEL: Record<EnrollmentStatus, string> = {
+  active: 'Đang học',
+  transferred: 'Đã chuyển lớp',
+  withdrawn: 'Đã rút',
+  completed: 'Hoàn thành',
+}
+
+export const VALID_ENROLLMENT_STATUS_TRANSITIONS: Record<EnrollmentStatus, EnrollmentStatus[]> = {
+  active: ['transferred', 'withdrawn', 'completed'],
+  transferred: [],
+  withdrawn: [],
+  completed: [],
 }

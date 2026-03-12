@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { UserPlus, Trash2 } from 'lucide-react'
+import { UserPlus, Trash2, ArrowLeftRight } from 'lucide-react'
 import { enrollmentCreateSchema, type EnrollmentCreateFormValues } from '../schemas/classroom.schema'
-import { useClassroomEnrollments, useAddEnrollment, useRemoveEnrollment } from '../hooks/useClassrooms'
-import type { Classroom } from '@/types/classroom.types'
-import type { Student } from '@/types/student.types'
+import { useClassroomEnrollments, useAddEnrollment, useUpdateEnrollmentStatus } from '../hooks/useClassrooms'
+import type { Classroom, Enrollment, EnrollmentStatus } from '@/types/classroom.types'
+import { ENROLLMENT_STATUS_LABEL, VALID_ENROLLMENT_STATUS_TRANSITIONS } from '@/types/classroom.types'
 import {
   Dialog,
   DialogContent,
@@ -20,13 +20,26 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Separator } from '@/components/ui/separator'
-import { StudentStatusBadge } from '@/components/shared/StatusBadge'
-import { ConfirmDeleteDialog } from '@/components/shared/ConfirmDeleteDialog'
 import { TablePagination } from '@/components/shared/TablePagination'
+
+const ENROLLMENT_STATUS_VARIANT: Record<EnrollmentStatus, 'default' | 'secondary' | 'outline' | 'destructive'> = {
+  active: 'default',
+  transferred: 'secondary',
+  withdrawn: 'destructive',
+  completed: 'outline',
+}
 
 interface EnrollmentDialogProps {
   open: boolean
@@ -36,7 +49,8 @@ interface EnrollmentDialogProps {
 
 export function EnrollmentDialog({ open, onOpenChange, classroom }: EnrollmentDialogProps) {
   const [page, setPage] = useState(1)
-  const [removeStudent, setRemoveStudent] = useState<Student | null>(null)
+  const [statusTarget, setStatusTarget] = useState<Enrollment | null>(null)
+  const [newStatus, setNewStatus] = useState<EnrollmentStatus>('transferred')
 
   const { data: enrollmentData, isLoading } = useClassroomEnrollments(classroom.class_code, {
     page,
@@ -44,23 +58,31 @@ export function EnrollmentDialog({ open, onOpenChange, classroom }: EnrollmentDi
   })
 
   const addMutation = useAddEnrollment(classroom.class_code)
-  const removeMutation = useRemoveEnrollment(classroom.class_code)
+  const statusMutation = useUpdateEnrollmentStatus(classroom.class_code)
 
   const form = useForm<EnrollmentCreateFormValues>({
     resolver: zodResolver(enrollmentCreateSchema),
-    defaultValues: { student_code: '', enrollment_date: '', notes: '' },
+    defaultValues: { student_id: '' as unknown as number, enrollment_type: 'primary', enrolled_date: '', notes: '' },
   })
 
   const handleAdd = (values: EnrollmentCreateFormValues) => {
     addMutation.mutate(
-      { student_code: values.student_code, enrollment_date: values.enrollment_date || undefined, notes: values.notes || undefined },
+      {
+        student_id: values.student_id,
+        enrollment_type: values.enrollment_type,
+        enrolled_date: values.enrolled_date || undefined,
+        notes: values.notes || undefined,
+      },
       { onSuccess: () => form.reset() },
     )
   }
 
-  const handleRemove = () => {
-    if (!removeStudent) return
-    removeMutation.mutate(removeStudent.student_code, { onSuccess: () => setRemoveStudent(null) })
+  const handleStatusChange = () => {
+    if (!statusTarget) return
+    statusMutation.mutate(
+      { enrollment_id: statusTarget.id, payload: { new_status: newStatus } },
+      { onSuccess: () => setStatusTarget(null) },
+    )
   }
 
   return (
@@ -71,7 +93,7 @@ export function EnrollmentDialog({ open, onOpenChange, classroom }: EnrollmentDi
             <DialogTitle>
               Học sinh lớp {classroom.class_name}
               <span className="ml-2 text-sm font-normal text-muted-foreground">
-                ({classroom.current_enrollment}/{classroom.max_students} học sinh)
+                ({classroom.current_enrollment}/{classroom.max_capacity} học sinh)
               </span>
             </DialogTitle>
           </DialogHeader>
@@ -80,15 +102,15 @@ export function EnrollmentDialog({ open, onOpenChange, classroom }: EnrollmentDi
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleAdd)} className="space-y-3">
               <h4 className="text-sm font-semibold text-gray-700">Thêm học sinh vào lớp</h4>
-              <div className="flex items-end gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <FormField
                   control={form.control}
-                  name="student_code"
+                  name="student_id"
                   render={({ field }) => (
-                    <FormItem className="flex-1">
-                      <FormLabel>Mã học sinh</FormLabel>
+                    <FormItem>
+                      <FormLabel>ID học sinh <span className="text-destructive">*</span></FormLabel>
                       <FormControl>
-                        <Input placeholder="VD: HS2024001" {...field} />
+                        <Input type="number" min={1} placeholder="ID học sinh" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -96,7 +118,27 @@ export function EnrollmentDialog({ open, onOpenChange, classroom }: EnrollmentDi
                 />
                 <FormField
                   control={form.control}
-                  name="enrollment_date"
+                  name="enrollment_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Loại đăng ký</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="primary">Lớp chính</SelectItem>
+                          <SelectItem value="secondary">Lớp phụ</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="enrolled_date"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Ngày vào lớp</FormLabel>
@@ -106,9 +148,23 @@ export function EnrollmentDialog({ open, onOpenChange, classroom }: EnrollmentDi
                     </FormItem>
                   )}
                 />
-                <Button type="submit" disabled={addMutation.isPending} className="mb-0.5">
+                <FormField
+                  control={form.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Ghi chú</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ghi chú..." {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="flex justify-end">
+                <Button type="submit" disabled={addMutation.isPending} size="sm">
                   <UserPlus className="h-4 w-4 mr-1" />
-                  Thêm
+                  {addMutation.isPending ? 'Đang thêm...' : 'Thêm học sinh'}
                 </Button>
               </div>
             </form>
@@ -127,22 +183,32 @@ export function EnrollmentDialog({ open, onOpenChange, classroom }: EnrollmentDi
               <p className="text-sm text-muted-foreground text-center py-6">Lớp chưa có học sinh nào.</p>
             ) : (
               <div className="divide-y border rounded-md">
-                {enrollmentData?.items.map((student) => (
-                  <div key={student.id} className="flex items-center justify-between px-4 py-2.5">
+                {enrollmentData?.items.map((enrollment) => (
+                  <div key={enrollment.id} className="flex items-center justify-between px-4 py-2.5">
                     <div>
-                      <p className="text-sm font-medium">{student.full_name}</p>
-                      <p className="text-xs text-muted-foreground">{student.student_code}</p>
+                      <p className="text-sm font-medium">{enrollment.student_name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {enrollment.student_code} · {enrollment.enrollment_type === 'primary' ? 'Lớp chính' : 'Lớp phụ'}
+                      </p>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <StudentStatusBadge status={student.academic_status} />
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 text-destructive hover:text-destructive"
-                        onClick={() => setRemoveStudent(student)}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={ENROLLMENT_STATUS_VARIANT[enrollment.enrollment_status]}>
+                        {ENROLLMENT_STATUS_LABEL[enrollment.enrollment_status]}
+                      </Badge>
+                      {VALID_ENROLLMENT_STATUS_TRANSITIONS[enrollment.enrollment_status].length > 0 && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                          onClick={() => {
+                            setStatusTarget(enrollment)
+                            setNewStatus(VALID_ENROLLMENT_STATUS_TRANSITIONS[enrollment.enrollment_status][0])
+                          }}
+                          title="Đổi trạng thái"
+                        >
+                          <ArrowLeftRight className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -161,14 +227,40 @@ export function EnrollmentDialog({ open, onOpenChange, classroom }: EnrollmentDi
         </DialogContent>
       </Dialog>
 
-      <ConfirmDeleteDialog
-        open={!!removeStudent}
-        onOpenChange={(o) => !o && setRemoveStudent(null)}
-        onConfirm={handleRemove}
-        title="Xoá học sinh khỏi lớp"
-        description={`Bạn có chắc muốn xoá học sinh "${removeStudent?.full_name}" khỏi lớp ${classroom.class_name}?`}
-        isLoading={removeMutation.isPending}
-      />
+      {/* Status Change Dialog */}
+      <Dialog open={!!statusTarget} onOpenChange={(o) => !o && setStatusTarget(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Đổi trạng thái đăng ký</DialogTitle>
+          </DialogHeader>
+          {statusTarget && (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Học sinh: <span className="font-medium text-foreground">{statusTarget.student_name}</span>
+              </p>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Trạng thái mới</label>
+                <Select value={newStatus} onValueChange={(v) => setNewStatus(v as EnrollmentStatus)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {VALID_ENROLLMENT_STATUS_TRANSITIONS[statusTarget.enrollment_status].map((s) => (
+                      <SelectItem key={s} value={s}>{ENROLLMENT_STATUS_LABEL[s]}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" size="sm" onClick={() => setStatusTarget(null)}>Huỷ</Button>
+                <Button size="sm" disabled={statusMutation.isPending} onClick={handleStatusChange}>
+                  {statusMutation.isPending ? 'Đang lưu...' : 'Xác nhận'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

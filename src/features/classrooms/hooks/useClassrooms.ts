@@ -7,6 +7,7 @@ import type {
   ClassroomUpdateRequest,
   ClassroomStatusUpdateRequest,
   EnrollmentCreateRequest,
+  EnrollmentStatusUpdateRequest,
 } from '@/types/classroom.types'
 import { omitEmpty } from '@/lib/utils'
 
@@ -36,7 +37,10 @@ export function useClassroomDetail(class_code: string) {
   })
 }
 
-export function useClassroomEnrollments(class_code: string, params: { page?: number; page_size?: number } = {}) {
+export function useClassroomEnrollments(
+  class_code: string,
+  params: { page?: number; page_size?: number } = {},
+) {
   return useQuery({
     queryKey: [...classroomKeys.enrollments(class_code), params],
     queryFn: () => classroomsApi.getEnrollments(class_code, params),
@@ -55,8 +59,7 @@ export function useCreateClassroom() {
       toast.success(`Đã tạo lớp ${res.data?.class_name}`)
     },
     onError: (err: { response?: { data?: { detail?: string } } }) => {
-      const msg = err.response?.data?.detail ?? 'Tạo lớp thất bại'
-      toast.error(msg)
+      toast.error(err.response?.data?.detail ?? 'Tạo lớp thất bại')
     },
   })
 }
@@ -72,8 +75,7 @@ export function useUpdateClassroom(class_code: string) {
       toast.success(`Đã cập nhật lớp ${res.data?.class_name}`)
     },
     onError: (err: { response?: { data?: { detail?: string } } }) => {
-      const msg = err.response?.data?.detail ?? 'Cập nhật thất bại'
-      toast.error(msg)
+      toast.error(err.response?.data?.detail ?? 'Cập nhật thất bại')
     },
   })
 }
@@ -83,14 +85,13 @@ export function useUpdateClassroomStatus(class_code: string) {
   return useMutation({
     mutationFn: (payload: ClassroomStatusUpdateRequest) =>
       classroomsApi.updateStatus(class_code, payload),
-    onSuccess: (res) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: classroomKeys.lists() })
       queryClient.invalidateQueries({ queryKey: classroomKeys.detail(class_code) })
-      toast.success(`Đã cập nhật trạng thái lớp ${res.data?.class_name}`)
+      toast.success('Đã cập nhật trạng thái lớp')
     },
     onError: (err: { response?: { data?: { detail?: string } } }) => {
-      const msg = err.response?.data?.detail ?? 'Cập nhật trạng thái thất bại'
-      toast.error(msg)
+      toast.error(err.response?.data?.detail ?? 'Cập nhật trạng thái thất bại')
     },
   })
 }
@@ -104,8 +105,7 @@ export function useDeleteClassroom() {
       toast.success('Đã xoá lớp học')
     },
     onError: (err: { response?: { data?: { detail?: string } } }) => {
-      const msg = err.response?.data?.detail ?? 'Xoá thất bại'
-      toast.error(msg)
+      toast.error(err.response?.data?.detail ?? 'Xoá thất bại')
     },
   })
 }
@@ -121,25 +121,23 @@ export function useAddEnrollment(class_code: string) {
       toast.success('Đã thêm học sinh vào lớp')
     },
     onError: (err: { response?: { data?: { detail?: string } } }) => {
-      const msg = err.response?.data?.detail ?? 'Thêm học sinh thất bại'
-      toast.error(msg)
+      toast.error(err.response?.data?.detail ?? 'Thêm học sinh thất bại')
     },
   })
 }
 
-export function useRemoveEnrollment(class_code: string) {
+export function useUpdateEnrollmentStatus(class_code: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (student_code: string) =>
-      classroomsApi.removeEnrollment(class_code, student_code),
+    mutationFn: ({ enrollment_id, payload }: { enrollment_id: number; payload: EnrollmentStatusUpdateRequest }) =>
+      classroomsApi.updateEnrollmentStatus(enrollment_id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: classroomKeys.enrollments(class_code) })
       queryClient.invalidateQueries({ queryKey: classroomKeys.lists() })
-      toast.success('Đã xoá học sinh khỏi lớp')
+      toast.success('Đã cập nhật trạng thái đăng ký')
     },
     onError: (err: { response?: { data?: { detail?: string } } }) => {
-      const msg = err.response?.data?.detail ?? 'Xoá học sinh thất bại'
-      toast.error(msg)
+      toast.error(err.response?.data?.detail ?? 'Cập nhật trạng thái thất bại')
     },
   })
 }

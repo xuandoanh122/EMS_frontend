@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Plus, Search, X } from 'lucide-react'
-import type { Classroom, ClassroomQueryParams, ClassroomStatus } from '@/types/classroom.types'
-import { CLASSROOM_STATUS_LABEL } from '@/types/classroom.types'
+import type { Classroom, ClassroomQueryParams, ClassType } from '@/types/classroom.types'
+import { CLASS_TYPE_LABEL } from '@/types/classroom.types'
 import {
   useClassroomList,
   useCreateClassroom,
@@ -59,21 +59,54 @@ export function ClassroomsPage() {
     setParams((p) => ({ ...p, search: undefined, page: 1 }))
   }
 
-  const handleStatusFilter = (value: string) => {
+  const handleClassTypeFilter = (value: string) => {
     setParams((p) => ({
       ...p,
-      status: value === 'all' ? undefined : (value as ClassroomStatus),
+      class_type: value === 'all' ? undefined : (value as ClassType),
+      page: 1,
+    }))
+  }
+
+  const handleAcademicYearFilter = (value: string) => {
+    setParams((p) => ({
+      ...p,
+      academic_year: value || undefined,
       page: 1,
     }))
   }
 
   const handleCreate = (values: ClassroomCreateFormValues) => {
-    createMutation.mutate(values, { onSuccess: () => setCreateOpen(false) })
+    createMutation.mutate(
+      {
+        class_code: values.class_code,
+        class_name: values.class_name,
+        class_type: values.class_type,
+        academic_year: values.academic_year,
+        grade_level: values.grade_level,
+        max_capacity: values.max_capacity,
+        homeroom_teacher_id: values.homeroom_teacher_id || undefined,
+        room_number: values.room_number || undefined,
+        description: values.description || undefined,
+      },
+      { onSuccess: () => setCreateOpen(false) },
+    )
   }
 
   const handleUpdate = (values: ClassroomCreateFormValues) => {
     if (!editClassroom) return
-    updateMutation.mutate(values, { onSuccess: () => setEditClassroom(null) })
+    updateMutation.mutate(
+      {
+        class_name: values.class_name,
+        class_type: values.class_type,
+        academic_year: values.academic_year,
+        grade_level: values.grade_level,
+        max_capacity: values.max_capacity,
+        homeroom_teacher_id: values.homeroom_teacher_id || undefined,
+        room_number: values.room_number || undefined,
+        description: values.description || undefined,
+      },
+      { onSuccess: () => setEditClassroom(null) },
+    )
   }
 
   const handleDelete = () => {
@@ -124,17 +157,22 @@ export function ClassroomsPage() {
               </div>
               <Button variant="outline" onClick={handleSearch}>Tìm kiếm</Button>
             </div>
-            <Select onValueChange={handleStatusFilter} defaultValue="all">
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Tất cả trạng thái" />
+            <Select onValueChange={handleClassTypeFilter} defaultValue="all">
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Loại lớp" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                {(Object.entries(CLASSROOM_STATUS_LABEL) as [ClassroomStatus, string][]).map(([v, l]) => (
+                <SelectItem value="all">Tất cả loại lớp</SelectItem>
+                {(Object.entries(CLASS_TYPE_LABEL) as [ClassType, string][]).map(([v, l]) => (
                   <SelectItem key={v} value={v}>{l}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            <Input
+              placeholder="Năm học (VD: 2024-2025)"
+              className="w-[200px]"
+              onChange={(e) => handleAcademicYearFilter(e.target.value)}
+            />
           </div>
         </CardContent>
       </Card>
