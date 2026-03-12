@@ -1,9 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
-import { Users, GraduationCap, BookOpen, TrendingUp } from 'lucide-react'
+import { Users, GraduationCap, BookOpen, TrendingUp, School } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { studentsApi } from '@/api/students.api'
-import { teachersApi } from '@/api/teachers.api'
+import { dashboardApi } from '@/api/dashboard.api'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -49,28 +48,10 @@ function StatCard({
 export function DashboardPage() {
   const navigate = useNavigate()
 
-  const { data: studentData, isLoading: studentsLoading } = useQuery({
-    queryKey: ['dashboard', 'students'],
-    queryFn: () => studentsApi.list({ page: 1, page_size: 5 }),
+  const { data: stats, isLoading } = useQuery({
+    queryKey: ['dashboard', 'stats'],
+    queryFn: () => dashboardApi.getStats(),
     select: (res) => res.data,
-  })
-
-  const { data: teacherData, isLoading: teachersLoading } = useQuery({
-    queryKey: ['dashboard', 'teachers'],
-    queryFn: () => teachersApi.list({ page: 1, page_size: 5 }),
-    select: (res) => res.data,
-  })
-
-  const { data: activeStudents, isLoading: activeStudentsLoading } = useQuery({
-    queryKey: ['dashboard', 'students-active'],
-    queryFn: () => studentsApi.list({ academic_status: 'active', page: 1, page_size: 1 }),
-    select: (res) => res.data?.total,
-  })
-
-  const { data: activeTeachers, isLoading: activeTeachersLoading } = useQuery({
-    queryKey: ['dashboard', 'teachers-active'],
-    queryFn: () => teachersApi.list({ employment_status: 'active', page: 1, page_size: 1 }),
-    select: (res) => res.data?.total,
   })
 
   return (
@@ -81,38 +62,46 @@ export function DashboardPage() {
       />
 
       {/* Stats row */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5 mb-6">
         <StatCard
           title="Tổng học sinh"
-          value={studentData?.total}
+          value={stats?.total_students}
           icon={GraduationCap}
           description="Tất cả hồ sơ trong hệ thống"
           color="bg-blue-600"
-          isLoading={studentsLoading}
+          isLoading={isLoading}
         />
         <StatCard
           title="Học sinh đang học"
-          value={activeStudents}
+          value={stats?.active_students}
           icon={TrendingUp}
           description="Trạng thái: Đang học"
           color="bg-emerald-600"
-          isLoading={activeStudentsLoading}
+          isLoading={isLoading}
         />
         <StatCard
           title="Tổng giáo viên"
-          value={teacherData?.total}
+          value={stats?.total_teachers}
           icon={Users}
           description="Tất cả hồ sơ trong hệ thống"
           color="bg-violet-600"
-          isLoading={teachersLoading}
+          isLoading={isLoading}
         />
         <StatCard
           title="Giáo viên đang công tác"
-          value={activeTeachers}
+          value={stats?.active_teachers}
           icon={BookOpen}
           description="Trạng thái: Đang công tác"
           color="bg-orange-500"
-          isLoading={activeTeachersLoading}
+          isLoading={isLoading}
+        />
+        <StatCard
+          title="Tổng lớp học"
+          value={stats?.total_classrooms}
+          icon={School}
+          description="Lớp học trong hệ thống"
+          color="bg-teal-600"
+          isLoading={isLoading}
         />
       </div>
 
@@ -127,13 +116,13 @@ export function DashboardPage() {
             </Button>
           </CardHeader>
           <CardContent className="p-0">
-            {studentsLoading ? (
+            {isLoading ? (
               <div className="space-y-2 p-4">
                 {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
               </div>
             ) : (
               <div className="divide-y">
-                {studentData?.items.map((student) => (
+                {stats?.recent_students.map((student) => (
                   <div key={student.id} className="flex items-center justify-between px-4 py-3">
                     <div>
                       <p className="text-sm font-medium">{student.full_name}</p>
@@ -161,13 +150,13 @@ export function DashboardPage() {
             </Button>
           </CardHeader>
           <CardContent className="p-0">
-            {teachersLoading ? (
+            {isLoading ? (
               <div className="space-y-2 p-4">
                 {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
               </div>
             ) : (
               <div className="divide-y">
-                {teacherData?.items.map((teacher) => (
+                {stats?.recent_teachers.map((teacher) => (
                   <div key={teacher.id} className="flex items-center justify-between px-4 py-3">
                     <div>
                       <p className="text-sm font-medium">{teacher.full_name}</p>
