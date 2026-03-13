@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(where node:*)",
+      "Read(//mnt/d/**)",
+      "Bash(cmd /c \"cd /d d:\\\\EMS_frontend && npm install @radix-ui/react-tabs --save 2>&1\")",
+      "Bash(cmd /c \"cd /d d:\\\\EMS_frontend && npm.cmd install @radix-ui/react-tabs\")",
+      "Bash(powershell -Command \"Set-Location ''D:\\\\EMS_frontend''; npm install ''@radix-ui/react-tabs'' 2>&1\")"
+    ]
+  }
+}

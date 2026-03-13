@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { UserPlus, Trash2, ArrowLeftRight } from 'lucide-react'
+import { UserPlus, ArrowLeftRight } from 'lucide-react'
 import { enrollmentCreateSchema, type EnrollmentCreateFormValues } from '../schemas/classroom.schema'
 import { useClassroomEnrollments, useAddEnrollment, useUpdateEnrollmentStatus } from '../hooks/useClassrooms'
 import type { Classroom, Enrollment, EnrollmentStatus } from '@/types/classroom.types'
@@ -33,6 +33,8 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Separator } from '@/components/ui/separator'
 import { TablePagination } from '@/components/shared/TablePagination'
+import { SearchCombobox } from '@/components/shared/SearchCombobox'
+import { lookupsApi } from '@/api/lookups.api'
 
 const ENROLLMENT_STATUS_VARIANT: Record<EnrollmentStatus, 'default' | 'secondary' | 'outline' | 'destructive'> = {
   active: 'default',
@@ -107,11 +109,15 @@ export function EnrollmentDialog({ open, onOpenChange, classroom }: EnrollmentDi
                   control={form.control}
                   name="student_id"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>ID học sinh <span className="text-destructive">*</span></FormLabel>
-                      <FormControl>
-                        <Input type="number" min={1} placeholder="ID học sinh" {...field} />
-                      </FormControl>
+                    <FormItem className="col-span-2">
+                      <FormLabel>Tìm học sinh <span className="text-destructive">*</span></FormLabel>
+                      <SearchCombobox
+                        value={field.value as number | undefined}
+                        onChange={(id) => field.onChange(id ?? '')}
+                        fetchFn={(search) => lookupsApi.students({ search, limit: 100 })}
+                        queryKey={['lookups', 'students']}
+                        placeholder="Tìm theo tên hoặc mã học sinh..."
+                      />
                       <FormMessage />
                     </FormItem>
                   )}
@@ -152,7 +158,7 @@ export function EnrollmentDialog({ open, onOpenChange, classroom }: EnrollmentDi
                   control={form.control}
                   name="notes"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="col-span-2">
                       <FormLabel>Ghi chú</FormLabel>
                       <FormControl>
                         <Input placeholder="Ghi chú..." {...field} />

@@ -20,6 +20,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
+import { SearchCombobox } from '@/components/shared/SearchCombobox'
+import { lookupsApi } from '@/api/lookups.api'
 
 interface ClassroomFormProps {
   defaultValues?: Partial<Classroom>
@@ -37,7 +39,7 @@ export function ClassroomForm({ defaultValues, onSubmit, isLoading, mode = 'crea
       class_type: defaultValues?.class_type ?? 'standard',
       academic_year: defaultValues?.academic_year ?? '',
       grade_level: defaultValues?.grade_level ?? ('' as unknown as number),
-      max_capacity: defaultValues?.max_capacity ?? 40,
+      max_capacity: defaultValues?.max_capacity ?? 20,
       homeroom_teacher_id: defaultValues?.homeroom_teacher_id ?? ('' as unknown as number),
       room_number: defaultValues?.room_number ?? '',
       description: defaultValues?.description ?? '',
@@ -47,143 +49,92 @@ export function ClassroomForm({ defaultValues, onSubmit, isLoading, mode = 'crea
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Thông tin cơ bản */}
         <div>
           <h3 className="text-sm font-semibold text-gray-700 mb-3">Thông tin lớp học</h3>
           <div className="grid grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="class_code"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Mã lớp <span className="text-destructive">*</span></FormLabel>
-                  <FormControl>
-                    <Input placeholder="VD: 10A1-2024" {...field} disabled={mode === 'edit'} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="class_name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tên lớp <span className="text-destructive">*</span></FormLabel>
-                  <FormControl>
-                    <Input placeholder="VD: Lớp 10A1" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="academic_year"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Năm học <span className="text-destructive">*</span></FormLabel>
-                  <FormControl>
-                    <Input placeholder="VD: 2024-2025" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="grade_level"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Khối lớp <span className="text-destructive">*</span></FormLabel>
-                  <FormControl>
-                    <Input type="number" min={1} max={13} placeholder="VD: 10" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="class_type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Loại lớp</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Chọn loại lớp" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="standard">Lớp thường</SelectItem>
-                      <SelectItem value="specialized">Lớp chuyên</SelectItem>
-                      <SelectItem value="advanced">Lớp nâng cao</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="max_capacity"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Sĩ số tối đa</FormLabel>
-                  <FormControl>
-                    <Input type="number" min={1} max={200} placeholder="40" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="homeroom_teacher_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>ID Giáo viên chủ nhiệm</FormLabel>
-                  <FormControl>
-                    <Input type="number" min={1} placeholder="ID giáo viên" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="room_number"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Phòng học</FormLabel>
-                  <FormControl>
-                    <Input placeholder="VD: P.201" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <FormField control={form.control} name="class_code" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Mã lớp <span className="text-destructive">*</span></FormLabel>
+                <FormControl>
+                  <Input placeholder="VD: IELTS-B-T2T4-2603" {...field} disabled={mode === 'edit'} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="class_name" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tên lớp <span className="text-destructive">*</span></FormLabel>
+                <FormControl><Input placeholder="VD: IELTS Basic Tối T2T4" {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="academic_year" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Năm học <span className="text-destructive">*</span></FormLabel>
+                <FormControl><Input placeholder="VD: 2025-2026" {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="grade_level" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Cấp độ <span className="text-destructive">*</span></FormLabel>
+                <FormControl><Input type="number" min={1} max={13} placeholder="VD: 1" {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="class_type" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Loại lớp</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl><SelectTrigger><SelectValue placeholder="Chọn loại lớp" /></SelectTrigger></FormControl>
+                  <SelectContent>
+                    <SelectItem value="standard">Lớp thường</SelectItem>
+                    <SelectItem value="specialized">Lớp chuyên</SelectItem>
+                    <SelectItem value="advanced">Lớp nâng cao</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="max_capacity" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Sĩ số tối đa</FormLabel>
+                <FormControl><Input type="number" min={1} max={200} placeholder="20" {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="homeroom_teacher_id" render={({ field }) => (
+              <FormItem className="col-span-2">
+                <FormLabel>Giáo viên phụ trách</FormLabel>
+                <SearchCombobox
+                  value={field.value as number | undefined}
+                  onChange={(id) => field.onChange(id ?? '')}
+                  fetchFn={(search) => lookupsApi.teachers({ search, limit: 100 })}
+                  queryKey={['lookups', 'teachers']}
+                  placeholder="Tìm tên giáo viên..."
+                />
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="room_number" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Phòng học</FormLabel>
+                <FormControl><Input placeholder="VD: P.201" {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
           </div>
         </div>
 
         <Separator />
 
-        <div>
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Mô tả</FormLabel>
-                <FormControl>
-                  <Input placeholder="Mô tả thêm về lớp..." {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        <FormField control={form.control} name="description" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Mô tả</FormLabel>
+            <FormControl><Input placeholder="Lịch học, ghi chú thêm..." {...field} /></FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
 
         <div className="flex justify-end gap-2 pt-2">
           <Button type="submit" disabled={isLoading}>

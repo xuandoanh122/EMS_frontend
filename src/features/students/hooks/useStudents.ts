@@ -37,8 +37,11 @@ export function useStudentDetail(student_code: string) {
 export function useCreateStudent() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (payload: StudentCreateRequest) =>
-      studentsApi.create(omitEmpty(payload) as StudentCreateRequest),
+    mutationFn: (payload: StudentCreateRequest) => {
+      const cleaned = omitEmpty(payload as object) as StudentCreateRequest
+      if (Array.isArray(cleaned.class_ids) && cleaned.class_ids.length === 0) delete cleaned.class_ids
+      return studentsApi.create(cleaned)
+    },
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: studentKeys.lists() })
       toast.success(`Đã tạo học sinh ${res.data?.full_name}`)
@@ -54,7 +57,7 @@ export function useUpdateStudent(student_code: string) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (payload: StudentUpdateRequest) =>
-      studentsApi.update(student_code, omitEmpty(payload) as StudentUpdateRequest),
+      studentsApi.update(student_code, omitEmpty(payload as object) as StudentUpdateRequest),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: studentKeys.lists() })
       queryClient.invalidateQueries({ queryKey: studentKeys.detail(student_code) })

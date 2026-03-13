@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, Search, X } from 'lucide-react'
+import { Plus, Search, X, Clock } from 'lucide-react'
 import type { Student, StudentQueryParams, StudentStatus } from '@/types/student.types'
 import { STUDENT_STATUS_LABEL } from '@/types/student.types'
 import {
@@ -12,12 +12,13 @@ import {
 import { StudentTable } from '@/features/students/components/StudentTable'
 import { StudentForm } from '@/features/students/components/StudentForm'
 import { StudentStatusDialog } from '@/features/students/components/StudentStatusDialog'
-import type { StudentCreateFormValues, StudentStatusFormValues } from '@/features/students/schemas/student.schema'
+import type { StudentCreateFormValues, StudentUpdateFormValues, StudentStatusFormValues } from '@/features/students/schemas/student.schema'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { TablePagination } from '@/components/shared/TablePagination'
 import { ConfirmDeleteDialog } from '@/components/shared/ConfirmDeleteDialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
 import {
   Select,
   SelectContent,
@@ -36,6 +37,7 @@ import { Card, CardContent } from '@/components/ui/card'
 export function StudentsPage() {
   const [params, setParams] = useState<StudentQueryParams>({ page: 1, page_size: 20 })
   const [searchInput, setSearchInput] = useState('')
+  const [pendingOnly, setPendingOnly] = useState(false)
 
   const [createOpen, setCreateOpen] = useState(false)
   const [editStudent, setEditStudent] = useState<Student | null>(null)
@@ -65,13 +67,24 @@ export function StudentsPage() {
     }))
   }
 
+  const handleTogglePending = () => {
+    const next = !pendingOnly
+    setPendingOnly(next)
+    setParams((p) => ({
+      ...p,
+      has_enrollment: next ? false : undefined,
+      academic_status: next ? 'active' : p.academic_status,
+      page: 1,
+    }))
+  }
+
   const handleCreate = (values: StudentCreateFormValues) => {
     createMutation.mutate(values, { onSuccess: () => setCreateOpen(false) })
   }
 
-  const handleUpdate = (values: StudentCreateFormValues) => {
+  const handleUpdate = (values: StudentCreateFormValues | StudentUpdateFormValues) => {
     if (!editStudent) return
-    updateMutation.mutate(values, { onSuccess: () => setEditStudent(null) })
+    updateMutation.mutate(values as StudentUpdateFormValues, { onSuccess: () => setEditStudent(null) })
   }
 
   const handleDelete = () => {
@@ -122,7 +135,8 @@ export function StudentsPage() {
               </div>
               <Button variant="outline" onClick={handleSearch}>Tìm kiếm</Button>
             </div>
-            <Select onValueChange={handleStatusFilter} defaultValue="all">
+
+            <Select onValueChange={handleStatusFilter} defaultValue="all" disabled={pendingOnly}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Tất cả trạng thái" />
               </SelectTrigger>
@@ -133,6 +147,22 @@ export function StudentsPage() {
                 ))}
               </SelectContent>
             </Select>
+
+            {/* Filter chờ xếp lớp */}
+            <Button
+              variant={pendingOnly ? 'default' : 'outline'}
+              size="sm"
+              onClick={handleTogglePending}
+              className="gap-1.5"
+            >
+              <Clock className="h-4 w-4" />
+              Chờ xếp lớp
+              {listData && pendingOnly && (
+                <Badge variant="secondary" className="ml-1 h-5 text-xs">
+                  {listData.total}
+                </Badge>
+              )}
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -177,7 +207,14 @@ export function StudentsPage() {
       <Dialog open={!!editStudent} onOpenChange={(o) => !o && setEditStudent(null)}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Chỉnh sửa học sinh</DialogTitle>
+            <DialogTitle>
+              Chỉnh sửa học sinh
+              {editStudent && (
+                <span className="ml-2 text-sm font-mono font-normal text-muted-foreground">
+                  {editStudent.student_code}
+                </span>
+              )}
+            </DialogTitle>
           </DialogHeader>
           {editStudent && (
             <StudentForm

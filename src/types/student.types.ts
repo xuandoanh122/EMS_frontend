@@ -26,7 +26,6 @@ export interface Student {
 }
 
 export interface StudentCreateRequest {
-  student_code: string
   full_name: string
   date_of_birth?: string
   gender?: 'male' | 'female' | 'other'
@@ -36,15 +35,14 @@ export interface StudentCreateRequest {
   address?: string
   enrollment_date?: string
   academic_status?: StudentStatus
-  class_name?: string
-  program_name?: string
+  class_ids?: number[]
   parent_full_name?: string
   parent_phone?: string
   parent_email?: string
   medical_notes?: string
 }
 
-export type StudentUpdateRequest = Partial<StudentCreateRequest>
+export type StudentUpdateRequest = Omit<StudentCreateRequest, 'class_ids' | 'academic_status'>
 
 export interface StudentStatusUpdateRequest {
   new_status: StudentStatus
@@ -55,8 +53,8 @@ export type StudentListResponse = PaginatedResponse<Student>
 
 export interface StudentQueryParams extends QueryParams {
   academic_status?: StudentStatus
-  class_name?: string
-  program_name?: string
+  has_enrollment?: boolean
+  classroom_id?: number
 }
 
 export const STUDENT_STATUS_LABEL: Record<StudentStatus, string> = {
