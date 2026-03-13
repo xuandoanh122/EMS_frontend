@@ -136,7 +136,7 @@ export function EnrollmentDialog({ open, onOpenChange, classroom }: EnrollmentDi
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="primary">Lớp chính</SelectItem>
-                          <SelectItem value="secondary">Lớp phụ</SelectItem>
+                          <SelectItem value="supplementary">Lớp bổ trợ</SelectItem>
                         </SelectContent>
                       </Select>
                     </FormItem>
@@ -196,7 +196,7 @@ export function EnrollmentDialog({ open, onOpenChange, classroom }: EnrollmentDi
                       <div>
                         <p className="text-sm font-medium">{enrollment.student_name}</p>
                         <p className="text-xs text-muted-foreground">
-                          {enrollment.student_code} · {enrollment.enrollment_type === 'primary' ? 'Lớp chính' : 'Lớp phụ'}
+                          {enrollment.student_code} · {enrollment.enrollment_type === 'primary' ? 'Lớp chính' : 'Lớp bổ trợ'}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">

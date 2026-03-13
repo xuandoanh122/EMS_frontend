@@ -1,7 +1,7 @@
 import type { PaginatedResponse, QueryParams } from './api.types'
 
 export type ClassType = 'standard' | 'specialized' | 'advanced'
-export type EnrollmentType = 'primary' | 'secondary'
+export type EnrollmentType = 'primary' | 'supplementary'
 export type EnrollmentStatus = 'active' | 'transferred' | 'withdrawn' | 'completed'
 
 export interface Classroom {
