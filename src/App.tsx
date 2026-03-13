@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { Toaster } from '@/components/ui/sonner'
 import { AppLayout } from '@/components/layout/AppLayout'
+import { AnimatedRoutes } from '@/components/animations'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { StudentsPage } from '@/pages/StudentsPage'
 import { TeachersPage } from '@/pages/TeachersPage'
@@ -28,12 +29,14 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route element={<AppLayout />}>
-            <Route index element={<DashboardPage />} />
-            <Route path="students" element={<StudentsPage />} />
-            <Route path="teachers" element={<TeachersPage />} />
-            <Route path="classrooms" element={<ClassroomsPage />} />
-            <Route path="grading" element={<GradingPage />} />
-            <Route path="salary" element={<SalaryPage />} />
+            <Route element={<AnimatedRoutes />}>
+              <Route index element={<DashboardPage />} />
+              <Route path="students" element={<StudentsPage />} />
+              <Route path="teachers" element={<TeachersPage />} />
+              <Route path="classrooms" element={<ClassroomsPage />} />
+              <Route path="grading" element={<GradingPage />} />
+              <Route path="salary" element={<SalaryPage />} />
+            </Route>
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

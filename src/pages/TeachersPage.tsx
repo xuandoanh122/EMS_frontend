@@ -32,6 +32,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Card, CardContent } from '@/components/ui/card'
+import { PageTransition } from '@/components/animations'
 
 export function TeachersPage() {
   const [params, setParams] = useState<TeacherQueryParams>({ page: 1, page_size: 20 })
@@ -85,131 +86,133 @@ export function TeachersPage() {
   }
 
   return (
-    <div>
-      <PageHeader
-        title="Quản lý Giáo viên"
-        description="Danh sách toàn bộ giáo viên trong hệ thống"
-        actions={
-          <Button onClick={() => setCreateOpen(true)}>
-            <Plus className="h-4 w-4" />
-            Thêm giáo viên
-          </Button>
-        }
-      />
-
-      {/* Filters */}
-      <Card className="mb-4">
-        <CardContent className="pt-4 pb-3">
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2 flex-1 min-w-[200px]">
-              <div className="relative flex-1 max-w-sm">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Tìm mã GV, tên, email..."
-                  className="pl-9"
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                />
-                {searchInput && (
-                  <button
-                    onClick={handleClearSearch}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                )}
-              </div>
-              <Button variant="outline" onClick={handleSearch}>Tìm kiếm</Button>
-            </div>
-            <Select onValueChange={handleStatusFilter} defaultValue="all">
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Tất cả trạng thái" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                {(Object.entries(TEACHER_STATUS_LABEL) as [TeacherStatus, string][]).map(([v, l]) => (
-                  <SelectItem key={v} value={v}>{l}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Table */}
-      <Card>
-        <CardContent className="p-0">
-          <TeacherTable
-            teachers={listData?.items ?? []}
-            isLoading={isLoading}
-            onEdit={setEditTeacher}
-            onDelete={setDeleteTeacher}
-            onStatusChange={setStatusTeacher}
-          />
-          {listData && listData.total_pages > 1 && (
-            <TablePagination
-              page={listData.page}
-              totalPages={listData.total_pages}
-              total={listData.total}
-              pageSize={listData.page_size}
-              onPageChange={(p) => setParams((prev) => ({ ...prev, page: p }))}
-            />
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Create Dialog */}
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Thêm giáo viên mới</DialogTitle>
-          </DialogHeader>
-          <TeacherForm
-            onSubmit={handleCreate}
-            isLoading={createMutation.isPending}
-            mode="create"
-          />
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Dialog */}
-      <Dialog open={!!editTeacher} onOpenChange={(o) => !o && setEditTeacher(null)}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Chỉnh sửa giáo viên</DialogTitle>
-          </DialogHeader>
-          {editTeacher && (
-            <TeacherForm
-              defaultValues={editTeacher}
-              onSubmit={handleUpdate}
-              isLoading={updateMutation.isPending}
-              mode="edit"
-            />
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Status Dialog */}
-      {statusTeacher && (
-        <TeacherStatusDialog
-          open={!!statusTeacher}
-          onOpenChange={(o) => !o && setStatusTeacher(null)}
-          teacher={statusTeacher}
-          onSubmit={handleStatusUpdate}
-          isLoading={statusMutation.isPending}
+    <PageTransition>
+      <div>
+        <PageHeader
+          title="Quản lý Giáo viên"
+          description="Danh sách toàn bộ giáo viên trong hệ thống"
+          actions={
+            <Button onClick={() => setCreateOpen(true)}>
+              <Plus className="h-4 w-4" />
+              Thêm giáo viên
+            </Button>
+          }
         />
-      )}
 
-      {/* Delete Confirm */}
-      <ConfirmDeleteDialog
-        open={!!deleteTeacher}
-        onOpenChange={(o) => !o && setDeleteTeacher(null)}
-        onConfirm={handleDelete}
-        title="Xoá giáo viên"
-        description={`Bạn có chắc muốn xoá giáo viên "${deleteTeacher?.full_name}"? Thao tác này sẽ ẩn hồ sơ khỏi hệ thống.`}
-        isLoading={deleteMutation.isPending}
-      />
-    </div>
+        {/* Filters */}
+        <Card className="mb-4">
+          <CardContent className="pt-4 pb-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2 flex-1 min-w-[200px]">
+                <div className="relative flex-1 max-w-sm">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Tìm mã GV, tên, email..."
+                    className="pl-9"
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  />
+                  {searchInput && (
+                    <button
+                      onClick={handleClearSearch}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+                <Button variant="outline" onClick={handleSearch}>Tìm kiếm</Button>
+              </div>
+              <Select onValueChange={handleStatusFilter} defaultValue="all">
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Tất cả trạng thái" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                  {(Object.entries(TEACHER_STATUS_LABEL) as [TeacherStatus, string][]).map(([v, l]) => (
+                    <SelectItem key={v} value={v}>{l}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Table */}
+        <Card>
+          <CardContent className="p-0">
+            <TeacherTable
+              teachers={listData?.items ?? []}
+              isLoading={isLoading}
+              onEdit={setEditTeacher}
+              onDelete={setDeleteTeacher}
+              onStatusChange={setStatusTeacher}
+            />
+            {listData && listData.total_pages > 1 && (
+              <TablePagination
+                page={listData.page}
+                totalPages={listData.total_pages}
+                total={listData.total}
+                pageSize={listData.page_size}
+                onPageChange={(p) => setParams((prev) => ({ ...prev, page: p }))}
+              />
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Create Dialog */}
+        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Thêm giáo viên mới</DialogTitle>
+            </DialogHeader>
+            <TeacherForm
+              onSubmit={handleCreate}
+              isLoading={createMutation.isPending}
+              mode="create"
+            />
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Dialog */}
+        <Dialog open={!!editTeacher} onOpenChange={(o) => !o && setEditTeacher(null)}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Chỉnh sửa giáo viên</DialogTitle>
+            </DialogHeader>
+            {editTeacher && (
+              <TeacherForm
+                defaultValues={editTeacher}
+                onSubmit={handleUpdate}
+                isLoading={updateMutation.isPending}
+                mode="edit"
+              />
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Status Dialog */}
+        {statusTeacher && (
+          <TeacherStatusDialog
+            open={!!statusTeacher}
+            onOpenChange={(o) => !o && setStatusTeacher(null)}
+            teacher={statusTeacher}
+            onSubmit={handleStatusUpdate}
+            isLoading={statusMutation.isPending}
+          />
+        )}
+
+        {/* Delete Confirm */}
+        <ConfirmDeleteDialog
+          open={!!deleteTeacher}
+          onOpenChange={(o) => !o && setDeleteTeacher(null)}
+          onConfirm={handleDelete}
+          title="Xoá giáo viên"
+          description={`Bạn có chắc muốn xoá giáo viên "${deleteTeacher?.full_name}"? Thao tác này sẽ ẩn hồ sơ khỏi hệ thống.`}
+          isLoading={deleteMutation.isPending}
+        />
+      </div>
+    </PageTransition>
   )
 }
