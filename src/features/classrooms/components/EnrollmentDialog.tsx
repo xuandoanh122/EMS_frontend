@@ -189,35 +189,38 @@ export function EnrollmentDialog({ open, onOpenChange, classroom }: EnrollmentDi
               <p className="text-sm text-muted-foreground text-center py-6">Lớp chưa có học sinh nào.</p>
             ) : (
               <div className="divide-y border rounded-md">
-                {enrollmentData?.items.map((enrollment) => (
-                  <div key={enrollment.id} className="flex items-center justify-between px-4 py-2.5">
-                    <div>
-                      <p className="text-sm font-medium">{enrollment.student_name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {enrollment.student_code} · {enrollment.enrollment_type === 'primary' ? 'Lớp chính' : 'Lớp phụ'}
-                      </p>
+                {(enrollmentData?.items ?? []).map((enrollment) => {
+                  const status = enrollment.status ?? enrollment.enrollment_status ?? 'active'
+                  return (
+                    <div key={enrollment.id} className="flex items-center justify-between px-4 py-2.5">
+                      <div>
+                        <p className="text-sm font-medium">{enrollment.student_name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {enrollment.student_code} · {enrollment.enrollment_type === 'primary' ? 'Lớp chính' : 'Lớp phụ'}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={ENROLLMENT_STATUS_VARIANT[status]}>
+                          {ENROLLMENT_STATUS_LABEL[status]}
+                        </Badge>
+                        {VALID_ENROLLMENT_STATUS_TRANSITIONS[status]?.length > 0 && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                            onClick={() => {
+                              setStatusTarget(enrollment)
+                              setNewStatus(VALID_ENROLLMENT_STATUS_TRANSITIONS[status][0])
+                            }}
+                            title="Đổi trạng thái"
+                          >
+                            <ArrowLeftRight className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant={ENROLLMENT_STATUS_VARIANT[enrollment.enrollment_status]}>
-                        {ENROLLMENT_STATUS_LABEL[enrollment.enrollment_status]}
-                      </Badge>
-                      {VALID_ENROLLMENT_STATUS_TRANSITIONS[enrollment.enrollment_status].length > 0 && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                          onClick={() => {
-                            setStatusTarget(enrollment)
-                            setNewStatus(VALID_ENROLLMENT_STATUS_TRANSITIONS[enrollment.enrollment_status][0])
-                          }}
-                          title="Đổi trạng thái"
-                        >
-                          <ArrowLeftRight className="h-3.5 w-3.5" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
             {enrollmentData && enrollmentData.total_pages > 1 && (
