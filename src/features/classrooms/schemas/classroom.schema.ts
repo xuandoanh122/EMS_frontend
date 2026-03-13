@@ -19,7 +19,7 @@ export const classroomStatusSchema = z.object({
 
 export const enrollmentCreateSchema = z.object({
   student_id: z.coerce.number().int().positive('ID học sinh phải là số nguyên dương'),
-  enrollment_type: z.enum(['primary', 'secondary']).optional(),
+  enrollment_type: z.enum(['primary', 'supplementary']).optional(),
   enrolled_date: z.string().optional(),
   notes: z.string().max(300).optional(),
 })
