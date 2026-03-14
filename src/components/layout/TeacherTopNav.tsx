@@ -1,16 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import {
-  LayoutDashboard,
-  Users,
-  GraduationCap,
-  BookOpen,
-  ClipboardList,
-  Banknote,
-  LogOut,
-  ChevronDown,
-  School,
-} from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { BookOpen, CalendarDays, ChevronDown, LogOut } from 'lucide-react'
+import { cn, getInitials } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -21,18 +11,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useAuthStore } from '@/stores/auth.store'
-import { getInitials } from '@/lib/utils'
 
 const NAV_ITEMS = [
-  { to: '/admin/dashboard', label: 'Tổng quan', icon: LayoutDashboard, exact: true },
-  { to: '/admin/students', label: 'Học sinh', icon: GraduationCap },
-  { to: '/admin/teachers', label: 'Giáo viên', icon: Users },
-  { to: '/admin/classrooms', label: 'Lớp học', icon: School },
-  { to: '/admin/grading', label: 'Điểm số', icon: ClipboardList },
-  { to: '/admin/salary', label: 'Lương', icon: Banknote },
+  { to: '/teacher/dashboard', label: 'Tổng quan', icon: CalendarDays, exact: true },
 ]
 
-export function AdminTopNav() {
+export function TeacherTopNav() {
   const navigate = useNavigate()
   const { user, clearAuth } = useAuthStore()
 
@@ -44,16 +28,14 @@ export function AdminTopNav() {
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-white shadow-sm">
       <div className="flex h-16 items-center px-6">
-        {/* Logo */}
         <div className="flex items-center gap-2 mr-8">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
             <BookOpen className="h-4 w-4 text-white" />
           </div>
           <span className="text-lg font-bold text-gray-900 hidden sm:block">EMS</span>
-          <span className="text-sm text-gray-500 hidden md:block">/ Quản lý Giáo dục</span>
+          <span className="text-sm text-gray-500 hidden md:block">/ Teacher Portal</span>
         </div>
 
-        {/* Nav links */}
         <nav className="flex items-center gap-1 flex-1">
           {NAV_ITEMS.map(({ to, label, icon: Icon, exact }) => (
             <NavLink
@@ -75,7 +57,6 @@ export function AdminTopNav() {
           ))}
         </nav>
 
-        {/* Right: User menu */}
         <div className="flex items-center gap-2">
           {user ? (
             <DropdownMenu>

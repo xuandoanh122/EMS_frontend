@@ -1,9 +1,29 @@
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BookOpen } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useAuthStore } from '@/stores/auth.store'
 
 export function LoginPage() {
   const navigate = useNavigate()
+  const { user, isAuthenticated, setAuth } = useAuthStore()
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      navigate(user.role === 'teacher' ? '/teacher/dashboard' : '/admin/dashboard', { replace: true })
+    }
+  }, [isAuthenticated, user, navigate])
+
+  const handleDemoLogin = (role: 'admin' | 'teacher') => {
+    const demoUser = {
+      id: role === 'admin' ? 1 : 2,
+      username: role === 'admin' ? 'admin.demo' : 'teacher.demo',
+      full_name: role === 'admin' ? 'Admin Demo' : 'Teacher Demo',
+      role,
+    }
+    setAuth(demoUser, 'dev-token')
+    navigate(role === 'teacher' ? '/teacher/dashboard' : '/admin/dashboard')
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 to-blue-50 p-4">
@@ -32,12 +52,20 @@ export function LoginPage() {
                 <strong>Lưu ý:</strong> Module Auth (JWT/OAuth2) chưa được triển khai ở backend.
                 Khi API auth sẵn sàng, form đăng nhập sẽ được kết nối tại đây.
               </div>
-              <button
-                onClick={() => navigate('/')}
-                className="w-full h-10 rounded-md bg-blue-600 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-              >
-                Tiếp tục (Bỏ qua đăng nhập)
-              </button>
+              <div className="space-y-2">
+                <button
+                  onClick={() => handleDemoLogin('admin')}
+                  className="w-full h-10 rounded-md bg-blue-600 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+                >
+                  Tiếp tục như Admin
+                </button>
+                <button
+                  onClick={() => handleDemoLogin('teacher')}
+                  className="w-full h-10 rounded-md border border-blue-200 bg-white text-sm font-medium text-blue-700 hover:bg-blue-50 transition-colors"
+                >
+                  Tiếp tục như Giáo viên
+                </button>
+              </div>
             </div>
           </CardContent>
         </Card>

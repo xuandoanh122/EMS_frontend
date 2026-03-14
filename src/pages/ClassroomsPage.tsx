@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Plus, Search, X } from 'lucide-react'
 import type { Classroom, ClassroomQueryParams, ClassType } from '@/types/classroom.types'
 import { CLASS_TYPE_LABEL } from '@/types/classroom.types'
@@ -9,6 +9,7 @@ import {
   useDeleteClassroom,
   useUpdateClassroomStatus,
 } from '@/features/classrooms/hooks/useClassrooms'
+import { useTeacherList } from '@/features/teachers/hooks/useTeachers'
 import { ClassroomTable } from '@/features/classrooms/components/ClassroomTable'
 import { ClassroomForm } from '@/features/classrooms/components/ClassroomForm'
 import { ClassroomStatusDialog } from '@/features/classrooms/components/ClassroomStatusDialog'
@@ -45,10 +46,32 @@ export function ClassroomsPage() {
   const [enrollmentClassroom, setEnrollmentClassroom] = useState<Classroom | null>(null)
 
   const { data: listData, isLoading } = useClassroomList(params)
+  const { data: teacherData, isLoading: teachersLoading } = useTeacherList({ page: 1, page_size: 100 })
   const createMutation = useCreateClassroom()
   const updateMutation = useUpdateClassroom(editClassroom?.class_code ?? '')
   const deleteMutation = useDeleteClassroom()
   const statusMutation = useUpdateClassroomStatus(statusClassroom?.class_code ?? '')
+
+  const teacherMap = useMemo(
+    () => new Map((teacherData?.items ?? []).map((teacher) => [teacher.id, teacher])),
+    [teacherData],
+  )
+
+  const classrooms = useMemo(
+    () =>
+      (listData?.items ?? []).map((classroom) => {
+        if (classroom.homeroom_teacher_id && !classroom.homeroom_teacher_name) {
+          const teacher = teacherMap.get(classroom.homeroom_teacher_id)
+          return {
+            ...classroom,
+            homeroom_teacher_name: teacher?.full_name ?? classroom.homeroom_teacher_name,
+            homeroom_teacher_code: teacher?.teacher_code ?? classroom.homeroom_teacher_code,
+          }
+        }
+        return classroom
+      }),
+    [listData, teacherMap],
+  )
 
   const handleSearch = () => {
     setParams((p) => ({ ...p, search: searchInput || undefined, page: 1 }))
@@ -181,7 +204,7 @@ export function ClassroomsPage() {
       <Card>
         <CardContent className="p-0">
           <ClassroomTable
-            classrooms={listData?.items ?? []}
+            classrooms={classrooms}
             isLoading={isLoading}
             onEdit={setEditClassroom}
             onDelete={setDeleteClassroom}
@@ -210,6 +233,8 @@ export function ClassroomsPage() {
             onSubmit={handleCreate}
             isLoading={createMutation.isPending}
             mode="create"
+            teachers={teacherData?.items ?? []}
+            teachersLoading={teachersLoading}
           />
         </DialogContent>
       </Dialog>
@@ -226,6 +251,8 @@ export function ClassroomsPage() {
               onSubmit={handleUpdate}
               isLoading={updateMutation.isPending}
               mode="edit"
+              teachers={teacherData?.items ?? []}
+              teachersLoading={teachersLoading}
             />
           )}
         </DialogContent>

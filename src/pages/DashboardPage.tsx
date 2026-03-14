@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+﻿import { useQuery } from '@tanstack/react-query'
 import { Users, GraduationCap, BookOpen, TrendingUp, School } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -182,7 +182,6 @@ export function DashboardPage() {
           description={`Hệ thống Quản lý Giáo dục — ${new Date().toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`}
         />
 
-        {/* Stats row */}
         <StaggerChildren className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5 mb-6" stagger={0.05}>
           <StatCard
             title="Tổng học sinh"
@@ -231,17 +230,16 @@ export function DashboardPage() {
           />
         </StaggerChildren>
 
-        {/* Recent data panels */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <RecentStudentsCard
             students={stats?.recent_students}
             isLoading={isLoading}
-            onViewAll={() => navigate('/students')}
+            onViewAll={() => navigate('/admin/students')}
           />
           <RecentTeachersCard
             teachers={stats?.recent_teachers}
             isLoading={isLoading}
-            onViewAll={() => navigate('/teachers')}
+            onViewAll={() => navigate('/admin/teachers')}
           />
         </div>
       </div>
