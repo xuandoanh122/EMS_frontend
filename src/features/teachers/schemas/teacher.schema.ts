@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
+// teacher_code: BE tự sinh theo format TchrYYMMxxx – FE không gửi
 export const teacherCreateSchema = z.object({
-  teacher_code: z.string().min(1, 'Mã giáo viên không được để trống').max(20),
   full_name: z.string().min(1, 'Họ tên không được để trống').max(150),
   date_of_birth: z.string().optional().or(z.literal('')),
   gender: z.enum(['male', 'female', 'other']).optional(),

@@ -1,7 +1,7 @@
 import type { PaginatedResponse, QueryParams } from './api.types'
 
 export type ClassType = 'standard' | 'specialized' | 'advanced'
-export type EnrollmentType = 'primary' | 'secondary'
+export type EnrollmentType = 'primary' | 'supplementary'
 export type EnrollmentStatus = 'active' | 'transferred' | 'withdrawn' | 'completed'
 
 export interface Classroom {
@@ -58,12 +58,17 @@ export interface Enrollment {
   student_name: string
   classroom_id: number
   class_code: string
+  class_name: string
   enrollment_type: EnrollmentType
-  enrollment_status: EnrollmentStatus
+  // API returns 'status', but type also supports 'enrollment_status' for compatibility
+  status?: EnrollmentStatus
+  enrollment_status?: EnrollmentStatus
   enrolled_date: string | null
   left_date: string | null
   notes: string | null
+  is_active: boolean
   created_at: string
+  updated_at: string
 }
 
 export interface EnrollmentCreateRequest {

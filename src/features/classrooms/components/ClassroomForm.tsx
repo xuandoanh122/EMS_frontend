@@ -57,16 +57,15 @@ export function ClassroomForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* ThÃ´ng tin cÆ¡ báº£n */}
         <div>
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">ThÃ´ng tin lá»›p há»c</h3>
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">Thông tin lớp học</h3>
           <div className="grid grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="class_code"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>MÃ£ lá»›p <span className="text-destructive">*</span></FormLabel>
+                  <FormLabel>Mã lớp <span className="text-destructive">*</span></FormLabel>
                   <FormControl>
                     <Input placeholder="VD: 10A1-2024" {...field} disabled={mode === 'edit'} />
                   </FormControl>
@@ -79,9 +78,9 @@ export function ClassroomForm({
               name="class_name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>TÃªn lá»›p <span className="text-destructive">*</span></FormLabel>
+                  <FormLabel>Tên lớp <span className="text-destructive">*</span></FormLabel>
                   <FormControl>
-                    <Input placeholder="VD: Lá»›p 10A1" {...field} />
+                    <Input placeholder="VD: Lớp 10A1" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -92,7 +91,7 @@ export function ClassroomForm({
               name="academic_year"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>NÄƒm há»c <span className="text-destructive">*</span></FormLabel>
+                  <FormLabel>Năm học <span className="text-destructive">*</span></FormLabel>
                   <FormControl>
                     <Input placeholder="VD: 2024-2025" {...field} />
                   </FormControl>
@@ -105,7 +104,7 @@ export function ClassroomForm({
               name="grade_level"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Khá»‘i lá»›p <span className="text-destructive">*</span></FormLabel>
+                  <FormLabel>Khối lớp <span className="text-destructive">*</span></FormLabel>
                   <FormControl>
                     <Input type="number" min={1} max={13} placeholder="VD: 10" {...field} />
                   </FormControl>
@@ -118,17 +117,17 @@ export function ClassroomForm({
               name="class_type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Loáº¡i lá»›p</FormLabel>
+                  <FormLabel>Loại lớp</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Chá»n loáº¡i lá»›p" />
+                        <SelectValue placeholder="Chọn loại lớp" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="standard">Lá»›p thÆ°á»ng</SelectItem>
-                      <SelectItem value="specialized">Lá»›p chuyÃªn</SelectItem>
-                      <SelectItem value="advanced">Lá»›p nÃ¢ng cao</SelectItem>
+                      <SelectItem value="standard">Lớp thường</SelectItem>
+                      <SelectItem value="specialized">Lớp chuyên</SelectItem>
+                      <SelectItem value="advanced">Lớp nâng cao</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -140,7 +139,7 @@ export function ClassroomForm({
               name="max_capacity"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>SÄ© sá»‘ tá»‘i Ä‘a</FormLabel>
+                  <FormLabel>Sĩ số tối đa</FormLabel>
                   <FormControl>
                     <Input type="number" min={1} max={200} placeholder="40" {...field} />
                   </FormControl>
@@ -184,7 +183,7 @@ export function ClassroomForm({
               name="room_number"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>PhÃ²ng há»c</FormLabel>
+                  <FormLabel>Phòng học</FormLabel>
                   <FormControl>
                     <Input placeholder="VD: P.201" {...field} />
                   </FormControl>
@@ -203,9 +202,9 @@ export function ClassroomForm({
             name="description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>MÃ´ táº£</FormLabel>
+                <FormLabel>Mô tả</FormLabel>
                 <FormControl>
-                  <Input placeholder="MÃ´ táº£ thÃªm vá» lá»›p..." {...field} />
+                  <Input placeholder="Mô tả thêm về lớp..." {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -215,7 +214,7 @@ export function ClassroomForm({
 
         <div className="flex justify-end gap-2 pt-2">
           <Button type="submit" disabled={isLoading}>
-            {isLoading ? 'Äang lÆ°u...' : mode === 'create' ? 'Táº¡o lá»›p há»c' : 'LÆ°u thay Ä‘á»•i'}
+            {isLoading ? 'Đang lưu...' : mode === 'create' ? 'Tạo lớp học' : 'Lưu thay đổi'}
           </Button>
         </div>
       </form>

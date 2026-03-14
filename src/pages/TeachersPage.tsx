@@ -33,6 +33,8 @@ import {
 } from '@/components/ui/dialog'
 import { Card, CardContent } from '@/components/ui/card'
 
+// NOTE: Page animation is handled by AnimatedRoutes in App.tsx
+
 export function TeachersPage() {
   const [params, setParams] = useState<TeacherQueryParams>({ page: 1, page_size: 20 })
   const [searchInput, setSearchInput] = useState('')
@@ -211,5 +213,6 @@ export function TeachersPage() {
         isLoading={deleteMutation.isPending}
       />
     </div>
+    </div >
   )
 }
