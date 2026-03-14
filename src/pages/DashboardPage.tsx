@@ -111,7 +111,7 @@ export function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-base">Học sinh mới nhất</CardTitle>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/students')}>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/admin/students')}>
               Xem tất cả
             </Button>
           </CardHeader>
@@ -145,7 +145,7 @@ export function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-base">Giáo viên mới nhất</CardTitle>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/teachers')}>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/admin/teachers')}>
               Xem tất cả
             </Button>
           </CardHeader>

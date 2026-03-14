@@ -1,7 +1,8 @@
-import { useForm } from 'react-hook-form'
+﻿import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { classroomCreateSchema, type ClassroomCreateFormValues } from '../schemas/classroom.schema'
 import type { Classroom } from '@/types/classroom.types'
+import type { Teacher } from '@/types/teacher.types'
 import {
   Form,
   FormControl,
@@ -26,9 +27,18 @@ interface ClassroomFormProps {
   onSubmit: (values: ClassroomCreateFormValues) => void
   isLoading?: boolean
   mode?: 'create' | 'edit'
+  teachers?: Teacher[]
+  teachersLoading?: boolean
 }
 
-export function ClassroomForm({ defaultValues, onSubmit, isLoading, mode = 'create' }: ClassroomFormProps) {
+export function ClassroomForm({
+  defaultValues,
+  onSubmit,
+  isLoading,
+  mode = 'create',
+  teachers,
+  teachersLoading,
+}: ClassroomFormProps) {
   const form = useForm<ClassroomCreateFormValues>({
     resolver: zodResolver(classroomCreateSchema),
     defaultValues: {
@@ -47,16 +57,16 @@ export function ClassroomForm({ defaultValues, onSubmit, isLoading, mode = 'crea
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Thông tin cơ bản */}
+        {/* ThÃ´ng tin cÆ¡ báº£n */}
         <div>
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">Thông tin lớp học</h3>
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">ThÃ´ng tin lá»›p há»c</h3>
           <div className="grid grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="class_code"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Mã lớp <span className="text-destructive">*</span></FormLabel>
+                  <FormLabel>MÃ£ lá»›p <span className="text-destructive">*</span></FormLabel>
                   <FormControl>
                     <Input placeholder="VD: 10A1-2024" {...field} disabled={mode === 'edit'} />
                   </FormControl>
@@ -69,9 +79,9 @@ export function ClassroomForm({ defaultValues, onSubmit, isLoading, mode = 'crea
               name="class_name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tên lớp <span className="text-destructive">*</span></FormLabel>
+                  <FormLabel>TÃªn lá»›p <span className="text-destructive">*</span></FormLabel>
                   <FormControl>
-                    <Input placeholder="VD: Lớp 10A1" {...field} />
+                    <Input placeholder="VD: Lá»›p 10A1" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -82,7 +92,7 @@ export function ClassroomForm({ defaultValues, onSubmit, isLoading, mode = 'crea
               name="academic_year"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Năm học <span className="text-destructive">*</span></FormLabel>
+                  <FormLabel>NÄƒm há»c <span className="text-destructive">*</span></FormLabel>
                   <FormControl>
                     <Input placeholder="VD: 2024-2025" {...field} />
                   </FormControl>
@@ -95,7 +105,7 @@ export function ClassroomForm({ defaultValues, onSubmit, isLoading, mode = 'crea
               name="grade_level"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Khối lớp <span className="text-destructive">*</span></FormLabel>
+                  <FormLabel>Khá»‘i lá»›p <span className="text-destructive">*</span></FormLabel>
                   <FormControl>
                     <Input type="number" min={1} max={13} placeholder="VD: 10" {...field} />
                   </FormControl>
@@ -108,17 +118,17 @@ export function ClassroomForm({ defaultValues, onSubmit, isLoading, mode = 'crea
               name="class_type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Loại lớp</FormLabel>
+                  <FormLabel>Loáº¡i lá»›p</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Chọn loại lớp" />
+                        <SelectValue placeholder="Chá»n loáº¡i lá»›p" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="standard">Lớp thường</SelectItem>
-                      <SelectItem value="specialized">Lớp chuyên</SelectItem>
-                      <SelectItem value="advanced">Lớp nâng cao</SelectItem>
+                      <SelectItem value="standard">Lá»›p thÆ°á»ng</SelectItem>
+                      <SelectItem value="specialized">Lá»›p chuyÃªn</SelectItem>
+                      <SelectItem value="advanced">Lá»›p nÃ¢ng cao</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -130,7 +140,7 @@ export function ClassroomForm({ defaultValues, onSubmit, isLoading, mode = 'crea
               name="max_capacity"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Sĩ số tối đa</FormLabel>
+                  <FormLabel>SÄ© sá»‘ tá»‘i Ä‘a</FormLabel>
                   <FormControl>
                     <Input type="number" min={1} max={200} placeholder="40" {...field} />
                   </FormControl>
@@ -143,10 +153,28 @@ export function ClassroomForm({ defaultValues, onSubmit, isLoading, mode = 'crea
               name="homeroom_teacher_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>ID Giáo viên chủ nhiệm</FormLabel>
-                  <FormControl>
-                    <Input type="number" min={1} placeholder="ID giáo viên" {...field} />
-                  </FormControl>
+                  <FormLabel>Giáo viên chủ nhiệm</FormLabel>
+                  <Select
+                    value={field.value ? String(field.value) : 'none'}
+                    onValueChange={(value) => field.onChange(value === 'none' ? '' : value)}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Chọn giáo viên" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">Chưa chọn</SelectItem>
+                      {teachersLoading && (
+                        <SelectItem value="loading" disabled>Đang tải danh sách...</SelectItem>
+                      )}
+                      {teachers?.map((teacher) => (
+                        <SelectItem key={teacher.id} value={String(teacher.id)}>
+                          {teacher.full_name} - {teacher.teacher_code}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
@@ -156,7 +184,7 @@ export function ClassroomForm({ defaultValues, onSubmit, isLoading, mode = 'crea
               name="room_number"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phòng học</FormLabel>
+                  <FormLabel>PhÃ²ng há»c</FormLabel>
                   <FormControl>
                     <Input placeholder="VD: P.201" {...field} />
                   </FormControl>
@@ -175,9 +203,9 @@ export function ClassroomForm({ defaultValues, onSubmit, isLoading, mode = 'crea
             name="description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Mô tả</FormLabel>
+                <FormLabel>MÃ´ táº£</FormLabel>
                 <FormControl>
-                  <Input placeholder="Mô tả thêm về lớp..." {...field} />
+                  <Input placeholder="MÃ´ táº£ thÃªm vá» lá»›p..." {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -187,7 +215,7 @@ export function ClassroomForm({ defaultValues, onSubmit, isLoading, mode = 'crea
 
         <div className="flex justify-end gap-2 pt-2">
           <Button type="submit" disabled={isLoading}>
-            {isLoading ? 'Đang lưu...' : mode === 'create' ? 'Tạo lớp học' : 'Lưu thay đổi'}
+            {isLoading ? 'Äang lÆ°u...' : mode === 'create' ? 'Táº¡o lá»›p há»c' : 'LÆ°u thay Ä‘á»•i'}
           </Button>
         </div>
       </form>
