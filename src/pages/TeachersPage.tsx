@@ -213,6 +213,5 @@ export function TeachersPage() {
         isLoading={deleteMutation.isPending}
       />
     </div>
-    </div >
   )
 }
