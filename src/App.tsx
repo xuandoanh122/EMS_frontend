@@ -12,6 +12,9 @@ import { ClassroomsPage } from '@/pages/ClassroomsPage'
 import { GradingPage } from '@/pages/GradingPage'
 import { SalaryPage } from '@/pages/SalaryPage'
 import { LoginPage } from '@/pages/LoginPage'
+import { ChangePasswordPage } from '@/pages/ChangePasswordPage'
+import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage'
+import { ResetPasswordPage } from '@/pages/ResetPasswordPage'
 import { useAuthStore } from '@/stores/auth.store'
 
 const queryClient = new QueryClient({
@@ -53,6 +56,9 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/change-password" element={<ChangePasswordPage />} />
           <Route path="/" element={<AuthRedirect />} />
           <Route element={<RequireRole allow={ADMIN_ROLES} />}>
             <Route path="/admin" element={<AdminLayout />}>

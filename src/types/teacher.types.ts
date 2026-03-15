@@ -20,6 +20,11 @@ export interface Teacher {
   is_active: boolean
   created_at: string
   updated_at: string
+  // Account info (populated when teacher has an account)
+  user_id?: number | null
+  username?: string | null
+  account_is_active?: boolean | null
+  must_change_password?: boolean | null
 }
 
 export interface TeacherCreateRequest {

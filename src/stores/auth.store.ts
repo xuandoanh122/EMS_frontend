@@ -1,36 +1,103 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { authApi, AuthUser, LoginResponse } from '@/api/auth.api'
+import { toast } from 'sonner'
 
-interface AuthUser {
-  id: number
-  username: string
-  full_name: string
-  role: 'admin' | 'teacher' | 'accountant' | 'student'
-}
-
-interface AuthState {
+export interface AuthState {
   user: AuthUser | null
   accessToken: string | null
+  refreshToken: string | null
   isAuthenticated: boolean
-  setAuth: (user: AuthUser, token: string) => void
+  mustChangePassword: boolean
+  setAuth: (user: AuthUser, accessToken: string, refreshToken?: string, mustChangePassword?: boolean) => void
   clearAuth: () => void
+  login: (username: string, password: string) => Promise<boolean>
+  logout: () => Promise<void>
+  setMustChangePassword: (value: boolean) => void
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       accessToken: null,
+      refreshToken: null,
       isAuthenticated: false,
+      mustChangePassword: false,
 
-      setAuth: (user, accessToken) => {
+      setAuth: (user, accessToken, refreshToken, mustChangePassword = false) => {
         localStorage.setItem('access_token', accessToken)
-        set({ user, accessToken, isAuthenticated: true })
+        if (refreshToken) {
+          localStorage.setItem('refresh_token', refreshToken)
+        }
+        set({ user, accessToken, refreshToken: refreshToken ?? get().refreshToken, isAuthenticated: true, mustChangePassword })
       },
 
       clearAuth: () => {
         localStorage.removeItem('access_token')
-        set({ user: null, accessToken: null, isAuthenticated: false })
+        localStorage.removeItem('refresh_token')
+        set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false, mustChangePassword: false })
+      },
+
+      setMustChangePassword: (value: boolean) => {
+        set({ mustChangePassword: value })
+        if (get().user) {
+          get().user!.must_change_password = value
+        }
+      },
+
+      login: async (username: string, password: string): Promise<boolean> => {
+        try {
+          const apiResponse = await authApi.login({ username, password })
+
+          // API returns envelope: { code, message, detail, data, errors }
+          // We need to access .data to get the actual LoginResponse
+          if (!apiResponse.data) {
+            throw new Error(apiResponse.detail || 'Login failed - no data returned')
+          }
+
+          const { access_token, refresh_token, role, user_id, teacher_id, must_change_password } = apiResponse.data
+
+          const user: AuthUser = {
+            id: user_id,
+            username,
+            role,
+            teacher_id,
+            must_change_password,
+          }
+
+          get().setAuth(user, access_token, refresh_token, must_change_password)
+          toast.success('Đăng nhập thành công!')
+          return true
+        } catch (error: any) {
+          const message = error.response?.data?.detail ?? error.message ?? 'Đăng nhập thất bại'
+          toast.error(message)
+          return false
+        }
+      },
+
+      logout: async () => {
+        const { accessToken, refreshToken, clearAuth } = get()
+
+        // Try to blacklist the token, but don't wait for it
+        if (accessToken) {
+          try {
+            await authApi.logout(accessToken, 'access')
+          } catch (error) {
+            // Ignore errors during logout
+          }
+        }
+
+        if (refreshToken) {
+          try {
+            await authApi.logout(refreshToken, 'refresh')
+          } catch (error) {
+            // Ignore errors during logout
+          }
+        }
+
+        clearAuth()
+        window.location.href = '/login'
       },
     }),
     {
@@ -38,7 +105,9 @@ export const useAuthStore = create<AuthState>()(
       partialize: (state) => ({
         user: state.user,
         accessToken: state.accessToken,
+        refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated,
+        mustChangePassword: state.mustChangePassword,
       }),
     },
   ),

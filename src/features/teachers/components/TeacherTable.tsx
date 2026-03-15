@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { MoreHorizontal, Pencil, Trash2, RefreshCw, ArrowUpDown } from 'lucide-react'
+import { MoreHorizontal, Pencil, Trash2, RefreshCw, ArrowUpDown, UserCog, UserX, UserCheck } from 'lucide-react'
 import type { Teacher } from '@/types/teacher.types'
 import {
   Table,
@@ -28,6 +28,7 @@ interface TeacherTableProps {
   onEdit: (teacher: Teacher) => void
   onDelete: (teacher: Teacher) => void
   onStatusChange: (teacher: Teacher) => void
+  onAccountManage: (teacher: Teacher) => void
 }
 
 export function TeacherTable({
@@ -36,6 +37,7 @@ export function TeacherTable({
   onEdit,
   onDelete,
   onStatusChange,
+  onAccountManage,
 }: TeacherTableProps) {
   const [sortField, setSortField] = useState<keyof Teacher | null>(null)
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
@@ -85,6 +87,7 @@ export function TeacherTable({
           <TableHead>Bằng cấp</TableHead>
           <TableHead>Ngày vào</TableHead>
           <TableHead>Trạng thái</TableHead>
+          <TableHead>Tài khoản</TableHead>
           <TableHead className="w-[60px]"></TableHead>
         </TableRow>
       </TableHeader>
@@ -104,6 +107,28 @@ export function TeacherTable({
               <TeacherStatusBadge status={teacher.employment_status} />
             </TableCell>
             <TableCell>
+              {teacher.user_id ? (
+                <div className="flex items-center gap-1">
+                  {teacher.account_is_active ? (
+                    <>
+                      <UserCheck className="h-4 w-4 text-green-600" />
+                      <span className="text-xs text-green-600">{teacher.username}</span>
+                    </>
+                  ) : (
+                    <>
+                      <UserX className="h-4 w-4 text-red-600" />
+                      <span className="text-xs text-red-600">Vô hiệu</span>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <Button variant="ghost" size="sm" onClick={() => onAccountManage(teacher)}>
+                  <UserCog className="h-4 w-4 mr-1" />
+                  Tạo
+                </Button>
+              )}
+            </TableCell>
+            <TableCell>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -119,6 +144,12 @@ export function TeacherTable({
                     <RefreshCw className="mr-2 h-4 w-4" />
                     Đổi trạng thái
                   </DropdownMenuItem>
+                  {teacher.user_id && (
+                    <DropdownMenuItem onClick={() => onAccountManage(teacher)}>
+                      <UserCog className="mr-2 h-4 w-4" />
+                      Quản lý tài khoản
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={() => onDelete(teacher)}

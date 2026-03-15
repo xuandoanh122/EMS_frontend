@@ -12,6 +12,7 @@ import {
 import { TeacherTable } from '@/features/teachers/components/TeacherTable'
 import { TeacherForm } from '@/features/teachers/components/TeacherForm'
 import { TeacherStatusDialog } from '@/features/teachers/components/TeacherStatusDialog'
+import { TeacherAccountDialog } from '@/features/teachers/components/TeacherAccountDialog'
 import type { TeacherCreateFormValues, TeacherStatusFormValues } from '@/features/teachers/schemas/teacher.schema'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { TablePagination } from '@/components/shared/TablePagination'
@@ -32,6 +33,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Card, CardContent } from '@/components/ui/card'
+import { authApi, UserAccountStatus } from '@/api/auth.api'
 
 // NOTE: Page animation is handled by AnimatedRoutes in App.tsx
 
@@ -43,8 +45,10 @@ export function TeachersPage() {
   const [editTeacher, setEditTeacher] = useState<Teacher | null>(null)
   const [deleteTeacher, setDeleteTeacher] = useState<Teacher | null>(null)
   const [statusTeacher, setStatusTeacher] = useState<Teacher | null>(null)
+  const [accountTeacher, setAccountTeacher] = useState<Teacher | null>(null)
+  const [accountInfo, setAccountInfo] = useState<UserAccountStatus | null>(null)
 
-  const { data: listData, isLoading } = useTeacherList(params)
+  const { data: listData, isLoading, refetch } = useTeacherList(params)
   const createMutation = useCreateTeacher()
   const updateMutation = useUpdateTeacher(editTeacher?.teacher_code ?? '')
   const deleteMutation = useDeleteTeacher()
@@ -84,6 +88,27 @@ export function TeachersPage() {
   const handleStatusUpdate = (values: TeacherStatusFormValues) => {
     if (!statusTeacher) return
     statusMutation.mutate(values, { onSuccess: () => setStatusTeacher(null) })
+  }
+
+  const handleAccountManage = async (teacher: Teacher) => {
+    setAccountTeacher(teacher)
+    // Fetch account info if exists
+    if (teacher.user_id) {
+      try {
+        const response = await authApi.getTeacherAccount(teacher.id)
+        setAccountInfo(response.data || null)
+      } catch {
+        setAccountInfo(null)
+      }
+    } else {
+      setAccountInfo(null)
+    }
+  }
+
+  const handleAccountSuccess = () => {
+    refetch()
+    setAccountTeacher(null)
+    setAccountInfo(null)
   }
 
   return (
@@ -148,6 +173,7 @@ export function TeachersPage() {
             onEdit={setEditTeacher}
             onDelete={setDeleteTeacher}
             onStatusChange={setStatusTeacher}
+            onAccountManage={handleAccountManage}
           />
           {listData && listData.total_pages > 1 && (
             <TablePagination
@@ -200,6 +226,20 @@ export function TeachersPage() {
           teacher={statusTeacher}
           onSubmit={handleStatusUpdate}
           isLoading={statusMutation.isPending}
+        />
+      )}
+
+      {/* Account Dialog */}
+      {accountTeacher && (
+        <TeacherAccountDialog
+          open={!!accountTeacher}
+          onOpenChange={(o) => { if (!o) { setAccountTeacher(null); setAccountInfo(null) } }}
+          teacherId={accountTeacher.id}
+          teacherName={accountTeacher.full_name}
+          teacherCode={accountTeacher.teacher_code}
+          teacherEmail={accountTeacher.email}
+          existingAccount={accountInfo}
+          onSuccess={handleAccountSuccess}
         />
       )}
 
