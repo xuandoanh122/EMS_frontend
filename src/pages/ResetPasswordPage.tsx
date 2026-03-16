@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
-import { BookOpen, Eye, EyeOff, Loader2, Lock, CheckCircle } from 'lucide-react'
+import { BookOpen, Eye, EyeOff, Loader2, Lock } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -17,25 +17,6 @@ export function ResetPasswordPage() {
     const [showPassword, setShowPassword] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState('')
-    const [isValidToken, setIsValidToken] = useState<boolean | null>(null)
-
-    useEffect(() => {
-        if (!token) {
-            setIsValidToken(false)
-            return
-        }
-
-        // Validate token
-        const validateToken = async () => {
-            try {
-                const response = await authApi.validateResetToken(token)
-                setIsValidToken(response.data?.valid ?? false)
-            } catch {
-                setIsValidToken(false)
-            }
-        }
-        validateToken()
-    }, [token])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -72,40 +53,16 @@ export function ResetPasswordPage() {
                 setError(response.data?.message || 'Đặt lại mật khẩu thất bại')
             }
         } catch (error: any) {
-            const message = error.response?.data?.detail || error.message || 'Đặt lại mật khẩu thất bại'
-            setError(message)
+            // Error toast is already shown by API interceptor
+            // Just show a form-level error for user awareness
+            setError('Đặt lại mật khẩu thất bại. Vui lòng thử lại.')
         } finally {
             setIsLoading(false)
         }
     }
 
-    // Loading state
-    if (isValidToken === null) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 to-blue-50 p-4">
-                <div className="w-full max-w-md">
-                    <div className="flex flex-col items-center mb-8">
-                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-600 shadow-lg mb-4">
-                            <BookOpen className="h-7 w-7 text-white" />
-                        </div>
-                        <h1 className="text-2xl font-bold text-gray-900">EMS</h1>
-                        <p className="text-sm text-gray-500">Hệ thống Quản lý Giáo dục</p>
-                    </div>
-                    <Card className="shadow-md">
-                        <CardContent className="pt-6">
-                            <div className="flex flex-col items-center justify-center py-8">
-                                <Loader2 className="h-8 w-8 animate-spin text-blue-600 mb-4" />
-                                <p className="text-gray-600">Đang xác thực token...</p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-            </div>
-        )
-    }
-
-    // Invalid token
-    if (!isValidToken) {
+    // Nếu không có token, hiển thị thông báo lỗi
+    if (!token) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 to-blue-50 p-4">
                 <div className="w-full max-w-md">
@@ -128,7 +85,7 @@ export function ResetPasswordPage() {
                                     Link đặt lại mật khẩu không hợp lệ
                                 </h2>
                                 <p className="text-gray-600 mb-6">
-                                    Link này đã hết hạn hoặc không hợp lệ. Vui lòng yêu cầu đặt lại mật khẩu mới.
+                                    Link này không có token xác thực. Vui lòng yêu cầu đặt lại mật khẩu mới.
                                 </p>
                                 <Link
                                     to="/forgot-password"

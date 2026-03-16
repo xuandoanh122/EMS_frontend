@@ -1,5 +1,6 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios'
 import { toast } from 'sonner'
+import { parseAPIError, isAuthError } from '@/lib/errors'
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL ?? 'http://10.10.115.69:8000',
@@ -25,22 +26,24 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
-    const status = error.response?.status
+    const parsedError = parseAPIError(error)
 
-    // Handle 401 - redirect to login
-    if (status === 401) {
+    // Handle auth errors specially
+    if (isAuthError(error)) {
       localStorage.removeItem('access_token')
       localStorage.removeItem('refresh_token')
-      window.location.href = '/login'
-      toast.error('Phiên đăng nhập đã hết hạn')
-    } else if (status === 403) {
-      toast.error('Bạn không có quyền thực hiện thao tác này')
-    } else if (status === 500) {
-      const detail = (error.response?.data as any)?.detail ?? 'Lỗi máy chủ'
-      toast.error(`Lỗi máy chủ: ${detail}`)
-    } else if (status === 502 || status === 503) {
-      toast.error('Máy chủ đang bảo trì, vui lòng thử lại sau')
+
+      // Only redirect to login if not already on login page
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login'
+      }
     }
+
+    // Show toast with user-friendly message
+    toast.error(parsedError.message, {
+      description: parsedError.action,
+      duration: 4000,
+    })
 
     return Promise.reject(error)
   },

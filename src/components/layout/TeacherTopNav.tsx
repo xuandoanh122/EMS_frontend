@@ -62,10 +62,10 @@ export function TeacherTopNav() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center gap-2 h-9 px-2">
                   <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-xs font-semibold text-white">
-                    {getInitials(user.username)}
+                    {getInitials(user.email || user.username)}
                   </div>
                   <span className="hidden md:inline text-sm font-medium text-gray-700">
-                    {user.username}
+                    {user.email || user.username}
                   </span>
                   <ChevronDown className="h-3.5 w-3.5 text-gray-500" />
                 </Button>
@@ -73,7 +73,7 @@ export function TeacherTopNav() {
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium">{user.username}</p>
+                    <p className="text-sm font-medium">{user.email || user.username}</p>
                     <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
                   </div>
                 </DropdownMenuLabel>

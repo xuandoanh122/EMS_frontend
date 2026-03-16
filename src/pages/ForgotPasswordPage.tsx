@@ -41,8 +41,9 @@ export function ForgotPasswordPage() {
                 setError(response.data?.message || 'Gửi yêu cầu thất bại')
             }
         } catch (error: any) {
-            const message = error.response?.data?.detail || error.message || 'Gửi yêu cầu thất bại'
-            setError(message)
+            // Error toast is already shown by API interceptor
+            // Just show a form-level error for user awareness
+            setError('Gửi yêu cầu thất bại. Vui lòng thử lại.')
         } finally {
             setIsLoading(false)
         }

@@ -13,7 +13,7 @@ const authClient = axios.create({
 })
 
 export interface LoginRequest {
-    username: string
+    email: string
     password: string
 }
 
@@ -26,11 +26,14 @@ export interface LoginResponse {
     user_id: number
     teacher_id: number | null
     must_change_password: boolean
+    email?: string
+    username?: string
 }
 
 export interface AuthUser {
     id: number
     username: string
+    email?: string
     role: string
     teacher_id: number | null
     full_name?: string
@@ -178,6 +181,15 @@ export const authApi = {
             '/api/v1/auth/forgot-password',
             data
         )
+        // Backend returns: { code: 200, message: "Success", detail: "...", data: null }
+        // For security, don't reveal if email exists
+        // So we return success: true if code is 200
+        if (response.data.code === 200) {
+            return {
+                ...response.data,
+                data: { success: true, message: response.data.detail || 'Email đã được gửi' }
+            }
+        }
         return response.data
     },
 
@@ -189,17 +201,14 @@ export const authApi = {
             '/api/v1/auth/reset-password',
             data
         )
-        return response.data
-    },
-
-    /**
-     * Kiểm tra token reset mật khẩu có hợp lệ không
-     */
-    validateResetToken: async (token: string): Promise<APIResponse<{ valid: boolean }>> => {
-        const response = await authClient.get<APIResponse<{ valid: boolean }>>(
-            '/api/v1/auth/reset-password/validate',
-            { params: { token } }
-        )
+        // Backend returns: { code: 200, message: "Success", detail: "...", data: null }
+        // We need to check code and return success in data
+        if (response.data.code === 200) {
+            return {
+                ...response.data,
+                data: { success: true, message: response.data.detail || 'Đặt lại mật khẩu thành công' }
+            }
+        }
         return response.data
     },
 }

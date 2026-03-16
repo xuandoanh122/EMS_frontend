@@ -9,7 +9,7 @@ import { useAuthStore } from '@/stores/auth.store'
 export function LoginPage() {
   const navigate = useNavigate()
   const { login, mustChangePassword } = useAuthStore()
-  const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -19,13 +19,13 @@ export function LoginPage() {
     e.preventDefault()
     setError('')
 
-    if (!username.trim() || !password.trim()) {
-      setError('Vui lòng nhập tên đăng nhập và mật khẩu')
+    if (!email.trim() || !password.trim()) {
+      setError('Vui lòng nhập email và mật khẩu')
       return
     }
 
     setIsLoading(true)
-    const success = await login(username, password)
+    const success = await login(email, password)
     setIsLoading(false)
 
     if (success) {
@@ -73,17 +73,17 @@ export function LoginPage() {
                 </div>
               )}
               <div className="space-y-2">
-                <label htmlFor="username" className="text-sm font-medium text-gray-700">
-                  Tên đăng nhập
+                <label htmlFor="email" className="text-sm font-medium text-gray-700">
+                  Email
                 </label>
                 <Input
-                  id="username"
-                  type="text"
-                  placeholder="Nhập tên đăng nhập"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  id="email"
+                  type="email"
+                  placeholder="Nhập địa chỉ email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
-                  autoComplete="username"
+                  autoComplete="email"
                   required
                 />
               </div>

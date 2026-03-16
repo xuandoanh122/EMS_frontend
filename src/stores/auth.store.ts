@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { authApi, AuthUser, LoginResponse } from '@/api/auth.api'
 import { toast } from 'sonner'
+import { parseAPIError } from '@/lib/errors'
 
 export interface AuthState {
   user: AuthUser | null
@@ -11,7 +12,7 @@ export interface AuthState {
   mustChangePassword: boolean
   setAuth: (user: AuthUser, accessToken: string, refreshToken?: string, mustChangePassword?: boolean) => void
   clearAuth: () => void
-  login: (username: string, password: string) => Promise<boolean>
+  login: (email: string, password: string) => Promise<boolean>
   logout: () => Promise<void>
   setMustChangePassword: (value: boolean) => void
 }
@@ -46,9 +47,9 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      login: async (username: string, password: string): Promise<boolean> => {
+      login: async (email: string, password: string): Promise<boolean> => {
         try {
-          const apiResponse = await authApi.login({ username, password })
+          const apiResponse = await authApi.login({ email, password })
 
           // API returns envelope: { code, message, detail, data, errors }
           // We need to access .data to get the actual LoginResponse
@@ -56,11 +57,12 @@ export const useAuthStore = create<AuthState>()(
             throw new Error(apiResponse.detail || 'Login failed - no data returned')
           }
 
-          const { access_token, refresh_token, role, user_id, teacher_id, must_change_password } = apiResponse.data
+          const { access_token, refresh_token, role, user_id, teacher_id, must_change_password, email: userEmail, username } = apiResponse.data
 
           const user: AuthUser = {
             id: user_id,
-            username,
+            email: userEmail,
+            username: username || userEmail?.split('@')[0] || '',
             role,
             teacher_id,
             must_change_password,
@@ -70,8 +72,16 @@ export const useAuthStore = create<AuthState>()(
           toast.success('Đăng nhập thành công!')
           return true
         } catch (error: any) {
-          const message = error.response?.data?.detail ?? error.message ?? 'Đăng nhập thất bại'
-          toast.error(message)
+          // Error toast is already shown by API interceptor
+          // Just return false to let the UI know login failed
+          // But we can add additional context if needed
+          const parsedError = parseAPIError(error)
+
+          // If the error wasn't handled by interceptor (shouldn't happen), show a fallback
+          if (!parsedError.message) {
+            toast.error('Đăng nhập thất bại. Vui lòng thử lại.')
+          }
+
           return false
         }
       },
